@@ -13,7 +13,7 @@ For obvious safety reasons, do it for channels that you control or you will expo
 Easiest way to get started is via Nix:
 
 ```sh
-nix run github:littledivy/autowork#main
+nix run github:littledivy/autowork
 ```
 
 or build from source using `make`.
