@@ -12,10 +12,26 @@ import (
 
 type Spawner struct {
 	reposDir string
+	useHappy bool
 }
 
-func NewSpawner(reposDir string) *Spawner {
-	return &Spawner{reposDir: reposDir}
+func NewSpawner(reposDir string, useHappy bool) *Spawner {
+	return &Spawner{reposDir: reposDir, useHappy: useHappy}
+}
+
+func (s *Spawner) claudeBinary() string {
+	if s.useHappy {
+		return "happy"
+	}
+	return "claude"
+}
+
+func (s *Spawner) notify(msg string) {
+	if !s.useHappy {
+		return
+	}
+	cmd := exec.Command("happy", "notify", "-p", msg)
+	cmd.Run()
 }
 
 func generateID() string {
@@ -70,6 +86,9 @@ Please analyze the codebase and work on this task. When you're done with initial
 		return nil, fmt.Errorf("failed to save session: %w", err)
 	}
 
+	// Send push notification
+	s.notify(fmt.Sprintf("New session: %s - %s", session.Repo, session.Summary))
+
 	return session, nil
 }
 
@@ -111,8 +130,8 @@ func (s *Spawner) startClaudeSession(repoPath, prompt, sessionID string) error {
 
 	// Start Claude Code in a detached process
 	// Using nohup to keep it running after parent exits
-	script := fmt.Sprintf(`cd "%s" && claude --print "%s" > "%s/%s.log" 2>&1 &`,
-		repoPath, prompt, sessionDir, sessionID)
+	script := fmt.Sprintf(`cd "%s" && %s --print "%s" > "%s/%s.log" 2>&1 &`,
+		repoPath, s.claudeBinary(), prompt, sessionDir, sessionID)
 
 	cmd := exec.Command("bash", "-c", script)
 	cmd.Dir = repoPath
@@ -140,7 +159,7 @@ func (s *Spawner) ResumeSession(session *Session) error {
 	}
 
 	// Start interactive Claude session
-	cmd := exec.Command("claude", "--resume")
+	cmd := exec.Command(s.claudeBinary(), "--resume")
 	cmd.Dir = session.RepoPath
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

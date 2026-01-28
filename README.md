@@ -51,12 +51,21 @@ This will generate a config at `~/.autowork`
 
 ```
 Usage:
-  autowork config    Configure autowork
-  autowork check     Check for new messages once
-  autowork start     Run as daemon (polls continuously)
-  autowork sessions  List pending work sessions
-  autowork open <id> Resume a work session
+  autowork config              Configure autowork
+  autowork check [--happy]     Check for new messages once
+  autowork start [--happy]     Run as daemon (polls continuously)
+  autowork sessions            List pending work sessions
+  autowork open [--happy] <id> Resume a work session
+
+Flags:
+  --happy  Use Happy Coder instead of Claude Code
 ```
+
+### Happy Coder Mode
+
+The `--happy` flag uses [Happy Coder](https://happy.engineering/) instead of Claude Code. Happy Coder provides a remote UI that you can access from the mobile app, allowing you to monitor and interact with sessions on the go.
+
+When `--happy` is enabled, you'll also receive push notifications when new sessions are spawned.
 
 
 ## License

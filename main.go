@@ -23,13 +23,30 @@ import (
 	"time"
 )
 
+var useHappy bool
+
 func main() {
 	if len(os.Args) < 2 {
 		printUsage()
 		os.Exit(1)
 	}
 
-	switch os.Args[1] {
+	// Check for --happy flag
+	args := []string{}
+	for _, arg := range os.Args[1:] {
+		if arg == "--happy" {
+			useHappy = true
+		} else {
+			args = append(args, arg)
+		}
+	}
+
+	if len(args) < 1 {
+		printUsage()
+		os.Exit(1)
+	}
+
+	switch args[0] {
 	case "config":
 		runConfig()
 	case "check":
@@ -39,11 +56,11 @@ func main() {
 	case "sessions":
 		runSessions()
 	case "open":
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: autowork open <session-id>")
+		if len(args) < 2 {
+			fmt.Println("Usage: autowork open [--happy] <session-id>")
 			os.Exit(1)
 		}
-		runOpen(os.Args[2])
+		runOpen(args[1])
 	default:
 		printUsage()
 		os.Exit(1)
@@ -54,11 +71,14 @@ func printUsage() {
 	fmt.Println(`autowork - Automatic Work Scheduler
 
 Usage:
-  autowork config    Configure Slack and OpenAI credentials
-  autowork check     Check for new messages once
-  autowork start     Run as daemon (polls continuously)
-  autowork sessions  List pending work sessions
-  autowork open <id> Resume a work session`)
+  autowork config           Configure Slack and OpenAI credentials
+  autowork check [--happy]  Check for new messages once
+  autowork start [--happy]  Run as daemon (polls continuously)
+  autowork sessions         List pending work sessions
+  autowork open [--happy] <id>  Resume a work session
+
+Flags:
+  --happy  Use Happy Coder (remote UI) instead of Claude Code`)
 }
 
 func runConfig() {
@@ -167,7 +187,7 @@ func runDaemon() {
 func processMessages(cfg *Config, state *State) {
 	slack := NewSlackClient(cfg.SlackToken, cfg.SlackCookie)
 	classifier := NewClassifier(cfg.ReposDir)
-	spawner := NewSpawner(cfg.ReposDir)
+	spawner := NewSpawner(cfg.ReposDir, useHappy)
 
 	fmt.Printf("[%s] Checking for new messages...\n", time.Now().Format("15:04:05"))
 
@@ -266,7 +286,7 @@ func runOpen(sessionID string) {
 		os.Exit(1)
 	}
 
-	spawner := NewSpawner(cfg.ReposDir)
+	spawner := NewSpawner(cfg.ReposDir, useHappy)
 	if err := spawner.ResumeSession(session); err != nil {
 		fmt.Printf("Error resuming session: %v\n", err)
 		os.Exit(1)
