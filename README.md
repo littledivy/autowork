@@ -8,6 +8,8 @@ autowork polls configured Slack channels for new messages and uses Claude to cla
 
 For obvious safety reasons, do it for channels that you control or you will expose be all your work chats to Claude. I have set it up to my own private DM only. Your AI slop is your responsibility. **Use at your own risk**.
 
+It does not automate the claude session itself. Claude only has read permissions in the directory but it is designed to start planning until you open the session and allow it to continue.
+
 ### Build
 
 Easiest way to get started is via Nix:
